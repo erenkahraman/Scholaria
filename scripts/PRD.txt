@@ -1,0 +1,253 @@
+# 📄 quanAI – Product Requirements Document
+**Version:** 1.2 (Draft)  **Owner:** Eren Kahraman  **Date:** 15 Jun 2025
+
+---
+
+## 1. Executive Summary
+EduTabs is an AI-powered e-learning platform optimised for tablets.
+Teachers upload curriculum PDFs, which are auto-parsed into question objects; they curate assignments and monitor progress.
+Students complete work on-device and can request AI "hint-only" guidance (never full answers).
+The MVP is teacher-first; student auto-grading and deeper analytics follow.
+
+---
+
+## 2. Success Metrics (90 days post-launch)
+
+| Goal                 | KPI                                     | Target     |
+| -------------------- | --------------------------------------- | ---------- |
+| Paperless workflow   | Assignments created in EduTabs          | ≥ 80 %     |
+| AI utilisation       | Students requesting ≥ 1 hint/assignment | ≥ 60 %     |
+| Teacher efficiency   | Time to create assignment (p95)         | ≤ 3 min    |
+| Stickiness           | Teacher DAU / MAU                       | ≥ 0.45     |
+| Reliability          | Crash-free sessions                     | ≥ 99.5 %   |
+
+---
+
+## 3. Personas
+
+| Persona                 | Needs                                       | Current Pain                             |
+| ----------------------- | ------------------------------------------- | ---------------------------------------- |
+| **Grace – Teacher, 32** | Upload once, track class, save grading time | Scattered materials, manual scoring      |
+| **Can – Student, 13**   | Solve maths/physics on tablet, ask for help | Static PDFs, no interactive feedback     |
+
+---
+
+## 4. Scope (MVP)
+
+### 4.1 Functional (Must-Have)
+1.  **Authentication & Roles** — User authentication via email & password. System must support distinct roles: `teacher`, `student`.
+2.  **Teacher Dashboard** — A central view with tiles for Classes, Open Assignments, and At-Risk Students.
+3.  **Classes** — Full CRUD functionality for classes, with a tab-based interface for Roster, Content, Assignments, and a placeholder for future Analytics.
+4.  **Content Upload** — Secure file upload from the client application to a cloud object store. The process should ideally use presigned URLs to avoid proxying data through the backend, triggering a parsing job upon completion.
+5.  **PDF Parsing Job** — An asynchronous job to extract question-and-answer blocks from uploaded PDFs, storing structured question data and generating text embeddings.
+6.  **Assignment Builder** — An interface for teachers to multi-select questions from their content library, set a due date, and toggle the `Hint Mode` for the assignment.
+7.  **Student Workspace** — A view for students to list their assignments, answer questions (via text or photo), and submit their work.
+8.  **RAG "Hint" Endpoint** — An endpoint that uses Retrieval-Augmented Generation to provide hints. It must perform a class-scoped semantic search over curriculum content. The underlying LLM must be constrained (e.g., via a system prompt) to prevent revealing direct answers.
+9.  **Teacher Progress View** — A dashboard for teachers to view student submissions and scores.
+
+### 4.2 Out-of-Scope (MVP)
+*   Automated grading rubrics
+*   Parent/guardian role
+*   Single Sign-On (SSO) integration
+*   Offline-first mode
+*   SCORM-compliant package import
+
+---
+
+## 5. User Journeys (Happy Path)
+
+1.  **Teacher:** Signs up → creates "8/B Math" class → uploads a PDF curriculum → system parses it → teacher builds an assignment from the content → students are notified.
+2.  **Student:** Opens the new assignment → works on a problem → requests a hint → receives scaffolded reasoning without the answer → submits completed work → teacher views the submission.
+
+---
+
+## 6. System Architecture Principles
+*   **Frontend:** A cross-platform mobile framework suitable for tablet UIs, built with **React Native and Expo**.
+*   **Backend:** A scalable backend, potentially using a Backend-as-a-Service (BaaS) platform (e.g., Supabase, Firebase) or a custom serverless architecture. Key components include:
+    *   **Authentication:** JWT-based sessions with Role-Based Access Control (RBAC), preferably integrated at the data access layer (e.g., RLS).
+    *   **Asynchronous Processing:** A queue-based system for long-running jobs like PDF parsing.
+    *   **LLM Integration:** A client for a performant and cost-effective Large Language Model with strong instruction-following capabilities.
+*   **Storage:** A robust, scalable cloud object storage solution for user uploads.
+*   **Database:** A relational database (e.g., PostgreSQL) with native or extension-based support for vector operations.
+*   **Observability:** Integration with standard logging, monitoring, and error tracking services (e.g., Sentry, Datadog).
+
+---
+
+## 7. UI/UX Principles & Key Screen Concepts
+This section provides initial concepts for the user interface and experience, bridging the gap between functional requirements and implementation. These are guiding ideas, not rigid specifications.
+
+### 7.1 UI/UX Principles
+*   **Tablet-First & Focused:** The UI will be optimized for landscape tablet use, with large touch targets and clean, uncluttered layouts to minimize distraction for both teachers and students.
+*   **Intuitive Navigation:** Navigation will be straightforward, using standard patterns like tab bars and navigation stacks provided by `@react-navigation`. Routing will be managed by `expo-router`.
+*   **Component-Based Architecture:** The frontend will be built with reusable React Native components to ensure consistency and speed up development.
+*   **Performant & Responsive:** The application must feel fluid. Animations and transitions will be implemented using `react-native-reanimated` for a smooth, native-like experience.
+*   **Clear State Management:** Visual feedback for loading, success, and error states is crucial. Skeletons or loaders will be used during data fetching.
+
+### 7.2 Key Screen Concepts (MVP)
+
+*   **Authentication Flow (`app/(auth)`):**
+    *   A single entry screen with options for "Login" or "Sign Up".
+    *   Sign-up form will have a toggle to select "I am a Teacher" or "I am a Student".
+
+*   **Teacher Dashboard (`app/(teacher)/dashboard.tsx`):**
+    *   The landing page after a teacher logs in.
+    *   A grid of interactive cards: "My Classes", "Active Assignments", "At-Risk Students".
+    *   A prominent "Create New Class" button.
+
+*   **Class Management (`app/(teacher)/class/[id]/`):**
+    *   Uses a tab navigator (`@react-navigation/bottom-tabs`) with four tabs:
+        1.  **Roster:** A simple list of enrolled students.
+        2.  **Content:** A list of uploaded PDFs, showing their parsing status (e.g., "Processing", "Ready"). Teachers can upload new PDFs from here.
+        3.  **Assignments:** A list of assignments created for this class. Each item shows the due date and completion statistics. A Floating Action Button (FAB) navigates to the Assignment Builder.
+        4.  **Analytics:** Initially a placeholder screen.
+
+*   **Assignment Builder (`app/(teacher)/assignment/create.tsx`):**
+    *   A two-step wizard or a two-panel layout suitable for tablets.
+    *   **Step 1:** Display all parsed questions from the class's content in a searchable, filterable list with checkboxes.
+    *   **Step 2:** Show the selected questions. Add inputs for the assignment title, due date, and a switch to toggle "Hint Mode".
+
+*   **Student Workspace (`app/(student)/dashboard.tsx`):**
+    *   The student's landing page.
+    *   A simple, clean list of their assignments, ordered by due date. Each list item shows the assignment title, class, and a status (e.g., "Not Started", "In Progress", "Submitted").
+
+*   **Student Assignment View (`app/(student)/assignment/[id].tsx`):**
+    *   A focused, single-question view. Students can swipe horizontally between questions (e.g., using a reanimated carousel).
+    *   For each question:
+        *   The question text is clearly displayed.
+        *   An input area is provided (a `TextInput` for text answers or a button to open the camera for photo submissions).
+        *   A discreet "Request a Hint" button. When tapped, it reveals the AI-generated hint in a modal or an expandable box below the question, preventing the main view from being obscured.
+
+---
+
+## 8. Data Model & AI Requirements
+
+### 8.1 Logical Data Model (v0)
+The following represents the logical relationships between data entities. The final implementation may vary.
+```sql
+-- Represents a teacher user
+CREATE TABLE teachers (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL
+);
+
+-- Represents a student user, associated with a class
+CREATE TABLE students (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    class_id UUID REFERENCES classes(id)
+);
+
+-- Represents a class, managed by a teacher
+CREATE TABLE classes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    label TEXT NOT NULL,
+    subject TEXT,
+    teacher_id UUID NOT NULL REFERENCES teachers(id)
+);
+
+-- Stores metadata for uploaded curriculum files
+CREATE TABLE pdfs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    class_id UUID NOT NULL REFERENCES classes(id),
+    storage_path TEXT NOT NULL,
+    uploaded_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Stores individual questions parsed from PDFs
+CREATE TABLE questions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    pdf_id UUID NOT NULL REFERENCES pdfs(id),
+    question_text TEXT NOT NULL,
+    embedding VECTOR(768), -- Dimension is an example, depends on model
+    answer_key TEXT
+);
+
+-- Represents an assignment created by a teacher
+CREATE TABLE assignments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    class_id UUID NOT NULL REFERENCES classes(id),
+    due_date TIMESTAMPTZ,
+    hint_mode BOOLEAN NOT NULL DEFAULT true
+);
+
+-- Joins questions to assignments (many-to-many)
+CREATE TABLE assignment_questions (
+    assignment_id UUID NOT NULL REFERENCES assignments(id),
+    question_id UUID NOT NULL REFERENCES questions(id),
+    PRIMARY KEY (assignment_id, question_id)
+);
+
+-- Stores student submissions for assignments
+CREATE TABLE submissions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    assignment_id UUID NOT NULL REFERENCES assignments(id),
+    student_id UUID NOT NULL REFERENCES students(id),
+    answers JSONB, -- Flexible schema for text or image URLs
+    score INTEGER
+);
+```
+
+### 8.2 AI & Service Requirements
+
+| Component    | Requirement                                                  | Considerations                                                                                                        |
+| ------------ | ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------- |
+| Embeddings   | Generate vector embeddings for semantic search.              | Model should balance performance, accuracy, and cost. Vector dimensionality will depend on the chosen model.          |
+| Tutor LLM    | Instruction-following model for hint generation.             | Must be fast, cost-effective, and have a context window sufficient for RAG. Must be configurable with a robust system prompt. |
+| Logging      | Log key AI interactions for operational and analytical purposes. | Capture user/request identifiers, model used, token counts, and latency.                                              |
+| Rate-limiting | Prevent abuse of the hint system.                            | Implement per-user, per-question limits (e.g., 5 requests/minute). Can be handled at the API gateway or database level. |
+
+---
+
+## 9. Non-Functional Requirements
+
+| Area          | Requirement                                        |
+| ------------- | -------------------------------------------------- |
+| Performance   | API p95 < 150 ms (excluding cold starts)           |
+|               | RAG Hint RTT < 4 s                                 |
+| Availability  | ≥ 99.9%                                            |
+| Security      | JWT-based auth, RLS, encrypted PII at rest, standard security headers (e.g., Helmet) |
+| Accessibility | WCAG 2.1 AA compliance                             |
+| Compliance    | GDPR-ready architecture; flag for COPPA considerations |
+
+---
+
+## 10. Timeline & Milestones (High-Level)
+
+| Week | Deliverable                                             |
+| ---- | ------------------------------------------------------- |
+| 1    | Auth, Role-Aware navigation, stubbed-out dashboard      |
+| 2    | Class management module (using dummy data)              |
+| 3    | File upload pipeline → stubbed parsing job              |
+| 4    | Assignment builder UI (connecting to parsed questions)  |
+| 5    | Student workspace flow + submission handling            |
+| 6    | Full implementation of PDF parsing and RAG hint service |
+| 7    | Auto-grading pilot, initial analytics, UI polish        |
+
+---
+
+## 11. Analytics & Monitoring
+
+*   **Product:** MAU, DAU/MAU, hints/assignment, PDF parse success rate, assignment creation volume.
+*   **Teacher-Facing:** Class average scores, assignment completion rates, list of at-risk students.
+*   **AI Ops:** Token consumption, cost per hint, hint latency (p95), guardrail violation incidents.
+
+---
+
+## 12. Risks & Mitigations
+
+| Risk                   | Likelihood | Impact | Mitigation                                                                                             |
+| ---------------------- | ---------- | ------ | ------------------------------------------------------------------------------------------------------ |
+| PDF layout variance    | Medium     | High   | Build a diverse sample suite of PDFs for testing; implement a fallback to OCR if structured extraction fails. |
+| LLM reveals answer     | Low        | High   | Employ strong system prompts, use output validation (e.g., regex checks), and monitor logs for violations. |
+| API cost overrun       | Medium     | Medium | Set firm budget alerts; implement user-level token quotas and smart rate-limiting.                     |
+| Poor hint quality      | Medium     | Medium | Iteratively refine the RAG prompt and chunking strategy; gather user feedback on hint helpfulness.       |
+| Connectivity issues    | Medium     | Medium | Defer full offline-first mode, but implement basic client-side caching for a better UX (e.g., for submitted answers). |
+
+---
+
+## 13. Glossary
+*   **Hint Mode:** An assignment setting where the AI provides guiding steps or reasoning instead of direct answers.
+*   **RAG (Retrieval-Augmented Generation):** The process of retrieving relevant information from a knowledge base (our parsed PDFs) to provide context to an LLM for generating a response.
+*   **RLS (Row-Level Security):** A database feature that restricts data access for a user at the row level based on policies, ensuring users can only see their own data.

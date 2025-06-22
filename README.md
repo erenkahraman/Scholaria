@@ -1,50 +1,85 @@
-# Welcome to your Expo app 👋
+# Scholaria - E-Learning Platform
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Welcome to Scholaria, a modern, tablet-first e-learning platform built with React Native and Expo. This platform provides distinct dashboard experiences for students and teachers and is powered by Supabase for authentication and database management.
 
-## Get started
+![Student Dashboard](https://i.imgur.com/example.png) <!-- It's a good idea to add a real screenshot here -->
 
-1. Install dependencies
+## ✨ Features
 
-   ```bash
-   npm install
-   ```
+-   **Role-Based Authentication**: Secure login and registration for Students, Teachers, and Admins.
+-   **Student Dashboard**: A feature-rich dashboard for students to view courses, track assignments, and monitor progress.
+-   **Teacher Dashboard**: A comprehensive dashboard for teachers to manage classes, create assignments, and view analytics.
+-   **Admin View Switching**: Admins can seamlessly switch between teacher and student views for support and testing.
+-   **Cross-Platform**: Built with Expo for native iOS, Android, and web support.
 
-2. Start the app
+## 🛠️ Tech Stack
 
-   ```bash
-   npx expo start
-   ```
+-   **Framework**: React Native with Expo
+-   **Language**: TypeScript
+-   **Backend & Auth**: Supabase
+-   **UI Components**: Custom-built UI library
+-   **Icons**: `lucide-react-native`
 
-In the output, you'll find options to open the app in a
+## 🚀 Getting Started
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+Follow these instructions to get the project up and running on your local machine.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+### Prerequisites
 
-## Get a fresh project
+-   Node.js (LTS version recommended)
+-   Yarn or npm
+-   A Supabase account (free tier is sufficient)
 
-When you're ready, run:
+### 1. Clone the Repository
 
 ```bash
-npm run reset-project
+git clone https://github.com/YOUR_USERNAME/YOUR_REPOSITORY.git
+cd scholaria
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### 2. Install Dependencies
 
-## Learn more
+```bash
+npm install
+# or
+yarn install
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+### 3. Setup Environment Variables (Crucial Step!)
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+This project uses Supabase for its backend. You must provide your own Supabase project credentials.
 
-## Join the community
+1.  **Create a `.env` file** in the root of the project (`quantai/.env`).
+2.  **Add your Supabase credentials** to it. You can find these in your Supabase project dashboard under `Project Settings` > `API`.
 
-Join our community of developers creating universal apps.
+Your `.env` file should look like this:
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```
+EXPO_PUBLIC_SUPABASE_URL="YOUR_SUPABASE_URL_HERE"
+EXPO_PUBLIC_SUPABASE_ANON_KEY="YOUR_SUPABASE_ANON_KEY_HERE"
+```
+
+### 4. Setup the Database
+
+The complete database schema, including tables and authentication triggers, is located in `scripts/complete_schema.sql`.
+
+1.  Navigate to the **SQL Editor** in your Supabase project dashboard.
+2.  Copy the entire contents of `scripts/complete_schema.sql`.
+3.  Paste it into the SQL editor and click **Run**. This will set up all necessary tables and functions.
+
+### 5. Run the Application
+
+Once your dependencies and environment are set up, you can start the Expo development server.
+
+```bash
+npx expo start
+```
+
+This will open the Expo developer tools in your browser. You can then run the app on:
+- An iOS simulator (press `i`)
+- An Android emulator (press `a`)
+- A web browser (press `w`)
+
+---
+
+_This project was bootstrapped with Create React Native App and enhanced by AI._
