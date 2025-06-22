@@ -32,47 +32,22 @@ yarn-error.*
 
 # local env files
 .env*.local
+.env
+# But allow the example file to be checked in
+!.env.example
 
 # typescript
 *.tsbuildinfo
 
-app-example
-
-# Added by Task Master AI
 # Logs
 logs
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-dev-debug.log
-
-# Node / Dependencies
-node_modules/
-*.tsbuildinfo
-
-# Expo
-.expo/
-dist/
-*.jks
-*.p8
-*.p12
-*.key
-*.mobileprovision
-*.orig
-
-# Local Environment Variables
-# -> IMPORTANT: Only ignore .env, not .env.example
-.env
-# But allow the example file to be checked in
-!.env.example
 
 # Linter
 .eslintcache
 
 # Build artifacts
 build/
-web-build/
 
 # IDE files
 .idea/
@@ -80,5 +55,13 @@ web-build/
 .vscode/
 
 # Temporary files
-*.log
 *~
+
+# Cursor
+.cursor/
+
+# Roo
+.roo/
+
+# Taskmaster
+.taskmaster/
